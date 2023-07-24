@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map</title>
+    <style>
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        #fullscreen-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <h1>Map</h1>
+
+    <div id="map"></div>
+    <button id="fullscreen-btn">Toggle Full Screen</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var latitude = {{ latitude }}; // Default latitude
+        var longitude = {{ longitude }}; // Default longitude
+
+        var map = L.map('map').setView([latitude, longitude], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        var marker = L.marker([latitude, longitude]).addTo(map);
+
+        // Reverse geocoding using OpenStreetMap Nominatim API
+        fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + latitude + '&lon=' + longitude)
+            .then(response => response.json())
+            .then(data => {
+                var address = data.display_name;
+                marker.bindPopup(address).openPopup();
+                L.popup()
+                    .setLatLng([latitude, longitude])
+                    .setContent('<b>Address:</b><br>' + address)
+                    .openOn(map);
+            })
+            .catch(error => console.log(error));
+
+        // Toggle full screen view on button click
+        var fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', function() {
+            if (map.isFullscreen()) {
+                map.exitFullscreen();
+            } else {
+                map.enterFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>
